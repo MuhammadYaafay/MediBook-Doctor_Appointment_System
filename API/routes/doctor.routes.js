@@ -5,6 +5,8 @@ const {
   updateDoctorProfile,
   getDoctorAppointments,
   updateAppointmentStatus,
+  getDashboardStats,
+  getDoctorEarnings
 } = require("../controllers/doctor.controller");
 const { verifyToken, isDoctor } = require("../middlewares/auth.middleware");
 const {
@@ -13,6 +15,8 @@ const {
 
 const router = express.Router();
 
+router.get('/dashboard', verifyToken, isDoctor, getDashboardStats)
+router.get('/earnings', verifyToken, isDoctor, getDoctorEarnings)
 router.get("/", getAllDoctors);
 router.get("/:id", getDoctorById);
 

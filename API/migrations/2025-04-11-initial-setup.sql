@@ -23,6 +23,7 @@ CREATE TABLE
         fee DECIMAL(10, 2) NOT NULL,
         rating DECIMAL(3,1) DEFAULT 0,
         reviews_count INT DEFAULT 0,
+        totalPatients INT DEFAULT 0,
         availability VARCHAR(255),
         about TEXT,
         services JSON,
@@ -31,7 +32,15 @@ CREATE TABLE
         certifications JSON,
         location JSON,
         available_slots JSON,
+        total_appointments INT DEFAULT 0,   
+        completed_appointments INT DEFAULT 0,
+        cancelled_appointments INT DEFAULT 0,
+        revenue DECIMAL(10,2)	
+        patientsGrowth DECIMAL(5,2)	
+        appointmentsGrowth DECIMAL(5,2)	
+        revenueGrowth DECIMAL(5,2)	
         is_approved TINYINT (1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
     );
 
@@ -44,6 +53,7 @@ CREATE TABLE
         appointment_time TIME NOT NULL,
         status ENUM ('pending', 'confirmed', 'completed', 'cancelled') DEFAULT 'pending',
         payment_status ENUM ('pending', 'completed', 'failed') DEFAULT 'pending',
+        fee DECIMAL(10, 2) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
         FOREIGN KEY (doctor_id) REFERENCES doctors (id) ON DELETE CASCADE

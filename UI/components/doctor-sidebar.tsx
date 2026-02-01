@@ -3,7 +3,7 @@
 import { LayoutDashboard, Calendar, UserCog, LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/context/authContext"
 
 interface DoctorSidebarProps {
   activeTab: string

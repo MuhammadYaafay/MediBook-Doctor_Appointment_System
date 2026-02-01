@@ -1,6 +1,28 @@
 const { validationResult } = require("express-validator");
 const pool = require("../config/db");
 
+//get dashboard stats
+const getDashboardStats = async (req, res) =>{
+  try {
+    const [stats] = await pool.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM users) AS total_patients,
+        (SELECT COUNT(*) FROM appointments) AS total_appointments,
+        (SELECT COUNT(*) FROM appointments WHERE status = 'completed') AS completed_appointments,
+        (SELECT COUNT(*) FROM appointments WHERE status = 'cancelled') AS cancelled_appointments,
+        (SELECT SUM(fee) FROM appointments) AS revenue,
+        (SELECT COUNT(*) FROM users WHERE created_at > DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH)) AS patients_growth,
+        (SELECT COUNT(*) FROM appointments WHERE appointment_date > DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH)) AS appointments_growth,
+        (SELECT SUM(fee) FROM appointments WHERE appointment_date > DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH)) AS revenue_growth
+    `);
+    return stats[0]
+  } catch (error) {
+    console.error("get dashboard stats error", error)
+    res.status(500).json({ message: "Internal Server Error" })
+  }
+}
+
+
 const getAllDoctors = async (req, res) => {
   try {
     const [doctors] = await pool.query(
@@ -122,6 +144,33 @@ const getDoctorAppointments = async (req, res) => {
     res.json(appointments);
   } catch (error) {
     console.error("get doctor appointments error", error);
+    res.status(500).json({ message: "Intestrnal Server Error" });
+  }
+};
+
+//get earning
+const getDoctorEarnings = async (req, res) => {
+  try {
+    if (!req.user?.doctorId) {
+      return res.status(400).json({ message: "Doctor ID is required" });
+    }
+
+    const [earnings] = await pool.query(
+      `SELECT 
+        a.id, a.appointment_date, a.appointment_time, a.status, a.payment_status,
+        u.name as patient_name, u.email as patient_email, 
+        p.amount as payment_amount
+      FROM appointments a
+      JOIN users u ON a.user_id = u.id
+      LEFT JOIN payments p ON a.id = p.appointment_id
+      WHERE a.doctor_id = ?
+      ORDER BY a.appointment_date DESC, a.appointment_time DESC`,
+      [req.user.doctorId]
+    );
+
+    res.json(earnings);
+  } catch (error) {
+    console.error("get doctor earnings error", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -162,4 +211,6 @@ module.exports = {
   updateDoctorProfile,
   getDoctorAppointments,
   updateAppointmentStatus,
+  getDashboardStats,
+  getDoctorEarnings
 };
